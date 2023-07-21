@@ -1,88 +1,87 @@
 import os
+import re
+from bs4 import BeautifulSoup
+from helper import chdir_parent, find_book
 
-def ind_of_min(arr = []):
-    return min([(i,e) for e,i in enumerate(arr)])[1]
+class Translation:
+    def __init__(self, index, name):
+        self.index = index
+        self.name = name
 
-def ret_index(text, str):
-    i = text.find(str)
-    if i == -1:
-        i = 1000000000 # one billion
-    return i
+T = Translation
+list_of_translations = [
+    T('51','delut'),
+    T('73','hfa'),
+    T('108','ngu2011'),
+    T('158','sch51'),
+    T('877','nbh'),
+    T('65','gantp'),
+    T('58','elb71'),
+    T('57','elb'),
+    T('157','sch2000')]
 
-
-list_of_translations = [('51','delut'),('73','hfa'),('108','ngu2011'),('158','sch51'),('877','nbh'),('65','gantp'),('58','elb71'),('57','elb'),('157','sch2000')]
-for trans in list_of_translations:
-    os.chdir(trans[1])
+def make_folders_in_translation(translation: str):
+    os.chdir(translation)
     if not os.path.exists("row"):
         os.mkdir("row")
-    os.chdir("full")
+
+class Verse:
+    def __init__(self, number, content):
+        self.number = number
+        self.content = content
 
 
+def find_verses(soup: BeautifulSoup) -> list[Verse]:
+    verses = soup.find_all('span', {"class": re.compile("ChapterContent_verse.*")})
+    parsed_verses = []
+    for verse in verses:
+        try:
+            number = verse.find('span', {"class": re.compile("ChapterContent_label.*")}).text
+            content = "".join([v.text for v in verse.find_all('span', {"class": re.compile("ChapterContent_content.*")})])
+            parsed_verses.append(Verse(number, content))
+        except Exception:
+            pass
+    return parsed_verses    
+
+def remove_empty_files():
+
+    for trans in list_of_translations:
+        print(trans.name)
+        make_folders_in_translation(trans.name)
+        
+        for filename in sorted(os.listdir("full")):
+            os.chdir("full")
+            with open(filename, 'r') as file:
+                file_data = file.read()
+            book = find_book(file_data)
+            
+            if book is None:
+                os.remove(filename)
+            chdir_parent()
+        chdir_parent()
 
 
-    for filename in os.listdir(os.getcwd()):
-        file = open(filename, 'r')
-        for row in file:
-            indicator = "<div class=\"label\">"
-            start = row.find(indicator)
-            if start != -1:
-                text = (row[start+indicator.__len__():])
-                break
+def do():
+    for trans in list_of_translations:
+        make_folders_in_translation(trans.name)
+        for filename in sorted(os.listdir("full")):
+            os.chdir("full")
+            with open(filename, 'r') as file:
+                file_data = file.read()
+            book = find_book(file_data)
+            if book is None:
+                chdir_parent()
+                print(filename)
+                continue
+            verses = find_verses(book)
 
+            chdir_parent()
+            os.chdir("row")
+            with open(f"row_{filename}", 'w') as file:
+                for v in verses:
+                    file.write(v.content + '\n')
+            chdir_parent()
+        chdir_parent()
 
-        chapter = int(text[:text.find("<")])
-
-        title = "calss=\"s\">" # __len__ = 10
-        remarks = "calss=\"r\">"
-        verse = "calss=\"p\">"
-
-        finished = False
-        temp = ''
-        polished = []
-        current_verse_index = -2
-        current_verse = '0\" '
-
-        while True:
-            next_verse_index = text.find("class=\"verse v")+14
-            next_verse = text[next_verse_index:next_verse_index+3]
-            if next_verse == current_verse:
-                next_verse_index = 1000000
-
-            start = text.find("class=\"content\">")
-            if start == -1:
-                break
-            if next_verse_index < start and next_verse_index != 13: # new verse
-                polished.append(temp)
-                temp = ''
-                text = text[start:]
-                current_verse_index = next_verse_index
-                current_verse = next_verse
-            else:
-                text = text[start+16:]
-                end = text.find("<")
-                temp = temp + text[:end]
-            # print(temp)
-
-        polished.append(temp)
-        polished = polished[1:]
-        for i,e in enumerate(polished):
-            if e[0] == ' ':
-                polished[i] = polished[i][1:]
-            if e[len(e)-1] == ' ':
-                polished[i] = polished[i][:len(polished[i])-1]
-
-        for i,e in enumerate(polished):
-            if polished[i] == '':
-                del(polished[i])
-
-        text = "".join(polished)
-
-        file.close()
-        os.chdir("..\\row")
-        file = open('row_' + filename, 'w')
-        for p in polished:
-            file.write(p + '\n')
-        file.close()
-        os.chdir("..\\full")
-        print(filename)
-    os.chdir("..\\..\\")
+remove_empty_files()
+do()
