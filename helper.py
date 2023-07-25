@@ -1,23 +1,5 @@
 import os
-import re
-from bs4 import BeautifulSoup
-
-class Chapter:
-    def __init__(self, number, name):
-        self.number = number
-        self.name = name
-
-def chdir_parent():
-    os.chdir(os.path.dirname(os.getcwd()))
-
-def save_chdir(path: str):
-    if not os.path.exists(path):
-        os.makedirs(path)
-    os.chdir(path)
-
-def find_book(text: str) -> BeautifulSoup:
-    soup = BeautifulSoup(text, "html.parser")
-    return soup.find('div', {"class": re.compile("ChapterContent_book.*")})
+from bible_types import Chapter
 
 
 def find_all_chapters():

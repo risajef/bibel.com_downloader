@@ -1,7 +1,8 @@
 import os
 from urllib import request
 from urllib.error import HTTPError
-from helper import Chapter
+
+from bible_types import Chapter
 
 hdr = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -35,8 +36,8 @@ class BibleTranslation:
         os.makedirs(path, exist_ok=True)
         os.chdir(path)
 
-    def go_to_raw_folder(self):
-        path = os.path.join(self.translation_path, "raw")
+    def go_to_row_folder(self):
+        path = os.path.join(self.translation_path, "row")
         os.makedirs(path, exist_ok=True)
         os.chdir(path)
 
@@ -117,9 +118,11 @@ if __name__ == "__main__":
     from helper import all_chapters
 
     for t in list_of_bible_com_translations[:2]:
-        for c in all_chapters()[1077:1079]:
+        t.go_to_base_folder()
+        for c in all_chapters():
             t.download(c)
 
     for t in list_of_bibleserver_translations[:2]:
-        for c in all_chapters()[1077:1079]:
+        t.go_to_base_folder()
+        for c in all_chapters():
             t.download(c)
