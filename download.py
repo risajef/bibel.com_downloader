@@ -1,16 +1,10 @@
 import os
 from urllib import request
+from urllib.parse import quote
 from urllib.error import HTTPError
 
 from bible_types import Chapter
-
-hdr = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
-       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-       'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
-       'Accept-Encoding': 'none',
-       'Accept-Language': 'en-US,en;q=0.8',
-       'Connection': 'keep-alive'}
-
+from helper import all_chapters, headers
 
 
 class BibleTranslation:
@@ -49,15 +43,19 @@ class BibleTranslation:
         file_name = f"{chapter.number}_{self.name}_{chapter.name}.html"
         self.go_to_full_folder()
         if os.path.exists(file_name):
+            print("skip downloading", self.name, chapter.name)
             return
         try:
-            req = request.Request(link, headers=hdr)
+            print("downloading", self.name, chapter.name)
+            req = request.Request(quote(link, safe=':/.'), headers=headers)
             response = request.urlopen(req)
             data = response.read().decode()
             with open(file_name, 'w') as bible_file:
                 bible_file.write(data)
         except HTTPError as e:
             print("could not download:", link, e)
+            with open(file_name, 'w') as bible_file:
+                bible_file.write("")
         self.go_to_base_folder()
 
 class BibleComTranslation(BibleTranslation):
@@ -99,6 +97,7 @@ list_of_bible_com_translations = [
     ]
 
 list_of_bibleserver_translations = [
+        BS("NeÜ", "Neue evangelistische Übersetzung"),
         BS("LUT", "Luther 2017"),
         BS("DBU", "Das Buch"),
         BS("EU", "Einheitsübersetzung 2016"),
@@ -106,7 +105,6 @@ list_of_bibleserver_translations = [
         BS("GNB", "Gute Nachricht Bibel 2018"),
         BS("HFA", "Hoffnung für alle"),
         BS("MENG", "Menge Bibel"),
-        BS("NeÜ", "Neue evangelistische Übersetzung"),
         BS("NGÜ", "Neue Genfer Übersetzung"),
         BS("SLT", "Schlachter 2000"),
         BS("ZB", "Zürcher Bibel")
@@ -115,14 +113,12 @@ list_of_bibleserver_translations = [
 list_of_bible_translations = list_of_bible_com_translations + list_of_bibleserver_translations
 
 if __name__ == "__main__":
-    from helper import all_chapters
-
-    for t in list_of_bible_com_translations[:2]:
+    for t in list_of_bible_com_translations:
         t.go_to_base_folder()
         for c in all_chapters():
             t.download(c)
 
-    for t in list_of_bibleserver_translations[:2]:
+    for t in list_of_bibleserver_translations:
         t.go_to_base_folder()
         for c in all_chapters():
             t.download(c)
