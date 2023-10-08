@@ -1,0 +1,32 @@
+{
+    "version": "2.0.0",
+    "tasks":[
+        {
+            "label": "Alembic Autogenerate Migrations",
+            "type": "shell",
+            "command": ".venv/bin/python3 -m alembic revision --autogenerate",
+        },
+        {
+            "label": "Alembic Migrate",
+            "type": "shell",
+            "command": ".venv/bin/python3 -m alembic upgrade head",
+        },
+        {
+            "label": "Docker Build",
+            "type": "docker-build",
+            "dockerBuild": {
+                "context": "${workspaceFolder}",
+                "dockerfile": "${workspaceFolder}/Dockerfile",
+            },
+        },
+        {
+            "label": "Docker Run: Debug",
+            "type": "docker-run",
+            "dependsOn": ["docker-build"],
+            "python": {
+                "module": "uvicorn",
+                "args": [ "main:app", "--reload" ],
+            }
+        }
+    ]
+}

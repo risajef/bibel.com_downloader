@@ -1,5 +1,3 @@
-.venv
-bibleserver.com/
-bible.com/
-strong/
+.venv/
+data/
 __pycache__/

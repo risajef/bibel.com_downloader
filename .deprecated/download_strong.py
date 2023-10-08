@@ -81,9 +81,11 @@ class StrongDownloader():
             req = request.Request(quote(strong_page.url, safe=':/.'), headers=headers)
             try:
                 response = request.urlopen(req)
+                data = response.read().decode()
             except HTTPError as e:
                 print("could not download:", strong_page.url, e)
-            data = response.read().decode()
+                data = ""
+                
             with open(file_name, 'w') as file:
                 file.write(data)
         self.go_to_base_folder()
@@ -97,6 +99,7 @@ class StrongDownloader():
         word_nodes = []
         self.go_to_full_folder()
         for file_name in sorted(os.listdir()):
+            print(file_name)
             with open(file_name, 'r') as file:
                 word_id = file_name.replace(".htm", "")
                 word_nodes.append(word_id)
@@ -109,4 +112,14 @@ class StrongDownloader():
             self.go_to_full_folder()
         self.go_to_base_folder()
 
-StrongDownloader().download()
+    def put_it_in_database(self):
+        self.go_to_row_folder()
+        for file_name in sorted(os.listdir()):
+            self.go_to_row_folder()
+            with open(file_name, 'r') as file:
+                data = file.read()
+        self.go_to_base_folder()
+        
+
+if __name__ == "__main__":
+    StrongDownloader().download()

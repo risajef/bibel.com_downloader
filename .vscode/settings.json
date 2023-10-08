@@ -1,0 +1,11 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "db",
+            "database": "\\\\wsl.localhost\\Ubuntu\\home\\reto\\Code\\bibel.com_downloader\\database\\database.db"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}
